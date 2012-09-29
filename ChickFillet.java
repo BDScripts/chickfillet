@@ -19,16 +19,7 @@ import org.powerbot.game.api.util.Random;
 import chickfillet.jobs.Banking;
 import chickfillet.jobs.Collect;
 import chickfillet.jobs.FarmWalk;
-/* Notes:
- * Setup for timer instead of millisecs, idk which is better
- * private Timer runTime;
- * under Loop() or onStart(), if runTime == null,
- * runTime = new Timer(0);
- * 
- *
- *
- *
- */
+
 
 @Manifest(authors = { "pancakes100" }, name = "Chick Fillet", description = "Loots chicken droppings" )
 public class ChickFillet extends ActiveScript implements PaintListener {
@@ -77,7 +68,7 @@ public class ChickFillet extends ActiveScript implements PaintListener {
 		canvas.fill(new Rectangle(Mouse.getX() + 1, Mouse.getY() - 4, 2, 15));
 		canvas.fill(new Rectangle(Mouse.getX() - 6, Mouse.getY() + 2, 16, 2));
 		canvas.setColor(Color.BLACK);
-		canvas.drawString("BigDaddy Chick Fillet", 80, 35);
+		canvas.drawString("BD Chick Fillet", 80, 35);
 		canvas.drawString("Run Time: " + (startTime - System.currentTimeMillis()), 20, 60);
 		canvas.drawString("Status :" + status, 20, 80);
 	}

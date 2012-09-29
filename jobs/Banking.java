@@ -15,6 +15,8 @@ import org.powerbot.game.api.methods.Walking;
 import org.powerbot.game.api.methods.Widgets;
 import org.powerbot.game.api.methods.interactive.Players;
 
+import chickfillet.ChickFillet;
+
 public class Banking extends Node {
 	
 	public static boolean walkToFarm = false;
@@ -25,15 +27,6 @@ public class Banking extends Node {
 			new Tile(3232, 3234, 0), new Tile(3236, 3231, 0),
 			new Tile(3237, 3226, 0) 
 	});
-	/*public final Tile[] northStairs = {
-			new Tile(3225, 3219, 0), new Tile(3215, 3219, 0),
-			new Tile(3214, 3227, 0), new Tile(3206, 3228, 0)
-	};
-	
-	public final Tile[] southStairs = {
-			new Tile(3223, 3220, 0), new Tile(3215, 3220, 0),
-			new Tile(3213, 3211, 0), new Tile(3206, 3210, 0)
-	};*/
 	
 	//North = 0, South = 1
 	public final Tile[][] stairPath = {
@@ -49,7 +42,7 @@ public class Banking extends Node {
 	
 	@Override
 	public boolean activate() {
-		return Inventory.isFull();
+		return Inventory.isFull() && Collect.farm.contains(Players.getLocal());
 	}
 	
 	private void traverseBank() {
@@ -63,21 +56,22 @@ public class Banking extends Node {
 			SceneObject baseStair = SceneEntities.getNearest(stairEnts[stairs][0]);
 			SceneObject midStair = SceneEntities.getNearest(stairEnts[stairs][1]);
 			SceneObject topStair = SceneEntities.getNearest(stairEnts[stairs][2]);
-			/* To Do: Add cases for stair not being on screen, and turning to stair + interacting */
 			if(baseStair.isOnScreen() && baseClimbed == false) {
-				/*&& !Players.getLocal.isMoving()*/
-				baseStair.interact("Climb-up");//add a random to choose between this and just clicking the base
+				baseStair.interact("Climb-up");
 				baseClimbed = true;
+				Task.sleep(1000, 1600);
 			}
 			if(midStair.isOnScreen() && baseClimbed) {
 				midStair.interact("Climb-up");
 				if(baseClimbed && topStair.isOnScreen()) {
 					allClimbed = true;
 					baseClimbed = false;
+					Task.sleep(1000, 1600);
 			}
 			if(topStair.isOnScreen() && allClimbed) {
-				//walk to bank
+				Walking.walk(new Tile(3209, 3219, 2));
 				allClimbed = false;
+				Task.sleep(500, 700);
 			}
 		}		
 	}
@@ -90,25 +84,29 @@ public class Banking extends Node {
 	
 	private void depositItems() {
 		SceneObject booth = SceneEntities.getNearest(Bank.BANK_BOOTH_IDS);
-		//Switch between banker + bank booth
 		if(booth != null) {
 			if(!booth.isOnScreen()) {
 				Camera.turnTo(booth);
 			}
-			booth.interact("Bank");//Check Message
+			booth.interact("Bank");
 			Task.sleep(200, 310);
 			Bank.depositInventory();
 		}
 	}
 	
 	public void execute() {
+		ChickFillet.status = "Teleporting";
 		telePrevious();
 		Task.sleep(1000, 3000);
+		ChickFillet.status = "Walking to bank";
 		traverseBank();
 		Task.sleep(300, 520);
+		ChickFillet.status = "Banking";
 		depositItems();
 		Task.sleep(400, 600);
+		ChickFillet.status = "Teleporting";
 		telePrevious();
+		ChickFillet.status = "Walking to Farm";
 		walkToFarm = true;
 	}
 
