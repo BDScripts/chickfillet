@@ -10,26 +10,25 @@ import org.powerbot.game.api.methods.widget.Camera;
 import org.powerbot.game.api.wrappers.Area;
 import org.powerbot.game.api.wrappers.Tile;
 import org.powerbot.game.api.wrappers.node.SceneObject;
-import org.powerbot.game.api.util.Random;
 import org.powerbot.game.api.methods.Walking;
 import org.powerbot.game.api.methods.Widgets;
 import org.powerbot.game.api.methods.interactive.Players;
 
 import chickfillet.ChickFillet;
+import chickfillet.consts.*;
 
 public class Banking extends Node {
 	
-	public static boolean walkToFarm = false;
+	public final Area lumLode = new Area(new Tile(3230, 3227, 0), new Tile(3237, 3227, 0),
+			new Tile(3237, 3217, 0), new Tile(3227, 3217, 0));
 	
-	public final Area lumLode = new Area(new Tile[] {
-			new Tile(3237, 3214, 0), new Tile(3224, 3216, 0),
-			new Tile(3228, 3225, 0), new Tile(3229, 3230, 0),
-			new Tile(3232, 3234, 0), new Tile(3236, 3231, 0),
-			new Tile(3237, 3226, 0) 
-	});
-	
-	//North = 0, South = 1
-	public final Tile[][] stairPath = {
+	public final Tile[] toStairs = {
+			new Tile(3225, 3219, 0), new Tile(3215, 3219, 0),
+			new Tile(3214, 3227, 0), new Tile(3206, 3228, 0)
+	};
+
+	//north = 0, south = 1
+	/*public final Tile[][] stairPath = {
 	{
 		new Tile(3225, 3219, 0), new Tile(3215, 3219, 0),
 		new Tile(3214, 3227, 0), new Tile(3206, 3228, 0)
@@ -37,7 +36,7 @@ public class Banking extends Node {
 	{
 		new Tile(3223, 3220, 0), new Tile(3215, 3220, 0),
 		new Tile(3213, 3211, 0), new Tile(3206, 3210, 0)
-	}};
+	}};*/
 	
 	
 	@Override
@@ -45,35 +44,56 @@ public class Banking extends Node {
 		return Inventory.isFull() && Collect.farm.contains(Players.getLocal());
 	}
 	
-	private void traverseBank() {
-		boolean baseClimbed = false;
-		boolean allClimbed = false;
-		int stairs = Random.nextInt(0, 1);
-		int[][] stairEnts = {{36776, 36777, 36778}, {36773, 36774, 36775}};
-		
-			Walking.newTilePath(stairPath[stairs]).traverse();
-			Task.sleep(498, 750);
-			SceneObject baseStair = SceneEntities.getNearest(stairEnts[stairs][0]);
-			SceneObject midStair = SceneEntities.getNearest(stairEnts[stairs][1]);
-			SceneObject topStair = SceneEntities.getNearest(stairEnts[stairs][2]);
-			if(baseStair.isOnScreen() && baseClimbed == false) {
+	SceneObject baseStair = SceneEntities.getNearest(36776);
+	SceneObject midStair = SceneEntities.getNearest(36777);
+	SceneObject topStair = SceneEntities.getNearest(36778);
+	boolean baseClimbed = false;
+	boolean allClimbed = false;
+	
+	private void climbBase() {
+		if(!Players.getLocal().isMoving()) {
+			if(baseStair.isOnScreen() && baseStair != null) {
 				baseStair.interact("Climb-up");
+				Task.sleep(1000, 2000);
+			} else if (!baseStair.isOnScreen() && baseStair != null) {
+				Camera.turnTo(baseStair);
+				Task.sleep(500, 750);
+				baseStair.interact("Climb-up");
+				Task.sleep(1000, 2000);
 				baseClimbed = true;
-				Task.sleep(1000, 1600);
 			}
-			if(midStair.isOnScreen() && baseClimbed) {
+		}
+	}
+	
+	private void climbMid() {
+		if(baseClimbed && !allClimbed) {
+			if(midStair.isOnScreen() && midStair != null) {
 				midStair.interact("Climb-up");
-				if(baseClimbed && topStair.isOnScreen()) {
-					allClimbed = true;
-					baseClimbed = false;
-					Task.sleep(1000, 1600);
+				Task.sleep(1000, 2000);
 			}
-			if(topStair.isOnScreen() && allClimbed) {
-				Walking.walk(new Tile(3209, 3219, 2));
-				allClimbed = false;
-				Task.sleep(500, 700);
+			if(!midStair.isOnScreen() && midStair != null) {
+				Camera.turnTo(midStair);
+				Task.sleep(500, 750);
+				midStair.interact("Climb-up");
+				Task.sleep(1000, 2000);
+				baseClimbed = false;
+				allClimbed = true;
 			}
-		}		
+		} 
+	}
+	
+	private void traverseBank() {		
+			Walking.newTilePath(toStairs).traverse();
+			Task.sleep(2500, 3000);
+			if(!Players.getLocal().isMoving()) {
+				climbBase();
+				climbMid();
+				if(topStair != null) {
+					allClimbed = false;
+					Walking.walk(new Tile(3209, 3219, 2));
+					Task.sleep(5000, 7000);
+				}
+			}
 	}
 	
 	private void telePrevious() {
@@ -97,17 +117,18 @@ public class Banking extends Node {
 	public void execute() {
 		ChickFillet.status = "Teleporting";
 		telePrevious();
-		Task.sleep(1000, 3000);
+		Task.sleep(11000, 13000);
 		ChickFillet.status = "Walking to bank";
 		traverseBank();
-		Task.sleep(300, 520);
-		ChickFillet.status = "Banking";
-		depositItems();
-		Task.sleep(400, 600);
-		ChickFillet.status = "Teleporting";
-		telePrevious();
-		ChickFillet.status = "Walking to Farm";
-		walkToFarm = true;
+		if(!Players.getLocal().isMoving()) {
+			ChickFillet.status = "Banking";
+			depositItems();
+			Task.sleep(400, 600);
+			ChickFillet.status = "Teleporting";
+			telePrevious();
+			Task.sleep(11000, 13000);
+			ChickFillet.status = "Walking to Farm";
+			Vars.walkToFarm = true;
+		}
 	}
-
 }

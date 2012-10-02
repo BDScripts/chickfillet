@@ -18,7 +18,7 @@ import org.powerbot.game.api.util.Random;
 
 import chickfillet.jobs.Banking;
 import chickfillet.jobs.Collect;
-import chickfillet.jobs.FarmWalk;
+import chickfillet.jobs.WalkToFarm;
 
 
 @Manifest(authors = { "pancakes100" }, name = "Chick Fillet", description = "Loots chicken droppings" )
@@ -42,7 +42,8 @@ public class ChickFillet extends ActiveScript implements PaintListener {
 	@Override
 	public void onStart() {
 		startTime = System.currentTimeMillis();
-		provide(new Collect(), new Banking(), new FarmWalk());
+		status = "N/A";
+		provide(new Collect(), new Banking(), new WalkToFarm());
 	}
 
 	@Override
